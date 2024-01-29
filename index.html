@@ -87,8 +87,8 @@
 <script>
     const data = [
         {text:'2ⁿᵈ', isNum: false, func: notSupported},
-        {text:'π', isNum: false, func: ()=>{addToDisplay('+π', "+" + Math.PI)}},
-        {text:'e', isNum: false, func: ()=>{addToDisplay('+e', "+" + Math.E)}},
+        {text:'π', isNum: false, func: ()=>{addToDisplay('π', Math.PI, true)}},
+        {text:'e', isNum: false, func: ()=>{addToDisplay('e', Math.E, true)}},
         {text:'CE', isNum: false, func: clearDisplay},
         {text:'x', isNum: false, func: deleteCharacter},
         {text:'𝑥²', isNum: false, func: ()=>{ performOperation((val)=>{return Math.pow(val,2)}) }},
@@ -101,7 +101,7 @@
         {text:')', isNum: false, func: ()=>{addToDisplay(')')}},
         {text:'n!', isNum: false, func: ()=>{ performOperation((val)=>{return Math.abs(val)}) }},
         {text:'÷', isNum: false, func: ()=>{addToDisplay('÷', '/')}},
-        {text:'𝑥ʸ', isNum: false, func: notSupported},
+        {text:'𝑥ʸ', isNum: false, func: () => {addToDisplay('^', '**')}},
 
         {text:'7', isNum: true, func: ()=>{addToDisplay(7)}},
         {text:'8', isNum: true, func: ()=>{addToDisplay(8)}},
@@ -154,14 +154,19 @@
     }
 
     function deleteCharacter(){
-        if(valueLabel.length == 0 || valueToEvaluate == undefined) {
+        if(valueLabel.length == 0 || valueToEvaluate == undefined || valueLabel.innerHTML === "NaN") {
             clearDisplay(); return;
         }
         valueLabel.innerText = valueLabel.innerText.substring(0, valueLabel.innerHTML.length - 1);
-        if(stack.length == 0 || valueToEvaluate.length == 0) return;
-        const popped = stack.pop();
-        valueToEvaluate = valueToEvaluate.substring(0, valueToEvaluate.length - popped.length);
-        console.log(popped, valueToEvaluate);
+        if(valueToEvaluate.length == 0) return;
+        if(stack.length > 0){
+            const popped = stack.pop();
+            valueToEvaluate = valueToEvaluate.substring(0, valueToEvaluate.length - popped.length);
+            console.log(popped, valueToEvaluate);
+        }
+        else{
+            valueToEvaluate=valueLabel.innerText;
+        }
     }
     function clearDisplay(){
         valueLabel.innerText = '';
@@ -174,21 +179,32 @@
         valueLabel.innerHTML = 'Not Supported';
     }
     
-    function addToDisplay(displayValue, actualValue){
-        if(valueToEvaluate == undefined) {
+    function addToDisplay(displayValue, actualValue, isSpecial){
+        if(valueToEvaluate == undefined || valueLabel.innerHTML === "NaN") {
             clearDisplay();
+        }
+        if(isSpecial && isNumeric(valueLabel.innerHTML.charAt(valueLabel.innerHTML.length - 1))){
+            displayValue = "x" + displayValue;
         }
         valueLabel.innerText += displayValue;
         if(actualValue !== undefined){
             stack.push(actualValue);
-            valueToEvaluate += actualValue;
+            if(isSpecial)
+                valueToEvaluate *= actualValue;
+            else
+                valueToEvaluate += actualValue;
         }
         else{
             stack.push(displayValue);
-            valueToEvaluate += displayValue;
+            if(isSpecial)
+                valueToEvaluate *= displayValue;
+            else
+                valueToEvaluate += displayValue;    
         }
     }
-
+    function isNumeric(char) {
+        return !isNaN(char - parseFloat(char));
+    }
     function invertSign(){
         calculateResult();
         valueToEvaluate *= -1;
@@ -211,7 +227,7 @@
         const evaluated = eval(valueToEvaluate);
         valueLabel.innerText = evaluated;
         valueToEvaluate = evaluated;
-        stack = [evaluated];
+        stack = [];
     }
     console.log(eval("5/10"))
     console.log(eval("1 + 4 * (1+1)"))
