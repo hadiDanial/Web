@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fetch API</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+  <script>
+    const url = "https://dummyjson.com/products"
+    const opt = {
+      // config for fetch
+      mode: "cors", // cross domain request is allowed
+    }
+    const fetchSize = 100;
+    const pageSize = 10;
+    const itemsPerPage = fetchSize / pageSize;
+    const numberOfPages = fetchSize / itemsPerPage;
+    let currentPage = 1;
+    let fetchedData = [];
+    
+
+    $(() => {
+      $("body").prepend("<h1 class='font-bold text-3xl text-center text-blue-600 my-4'>Products</h1>")
+      const previousPageBtn = $("#previousPageBtn");
+      const nextPageBtn = $("#nextPageBtn");
+
+      previousPageBtn.prop("disabled", true);
+      
+      nextPageBtn.on("click", () => {
+        currentPage = currentPage < numberOfPages ? currentPage + 1 : currentPage;
+        if(currentPage > 1) 
+          previousPageBtn.prop("disabled", false);
+        console.log(currentPage)
+        if (currentPage === numberOfPages) {
+          nextPageBtn.prop("disabled", true);
+        } else {
+          nextPageBtn.prop("disabled", false);
+        }
+        createTable();
+      });
+    
+      previousPageBtn.on("click", () => {
+        currentPage = currentPage > 1 ? currentPage - 1 : currentPage;
+        if(currentPage < numberOfPages) 
+          nextPageBtn.prop("disabled", false);
+        console.log(currentPage)
+        if (currentPage === 1) {
+          previousPageBtn.prop("disabled", true);
+        } else {
+          previousPageBtn.prop("disabled", false);
+        }
+        createTable();
+
+      });
+
+      // onload callback
+      fetchProducts(currentPage)
+    })
+
+    const fetchProducts = async (page) => {
+      try {
+        const skip = (page - 1) * pageSize;
+        let response = await fetch(`${url}?limit=${fetchSize}&skip=${skip}`, opt)
+        let data = await response.json() // response.text()
+        console.log(data)
+        fetchedData = data;
+        createTable()
+      } catch (e) {
+        console.error(e)
+      }
+    }
+    //
+    const createTableHeader = () => {
+      let th = $("<tr/>");
+      th.append($("<th/>").addClass("border").addClass("px-2").addClass("text-blue-500").addClass("py-1").text("ID"));
+      th.append($("<th/>").addClass("border").addClass("px-2").addClass("text-blue-500").addClass("py-1").text("Thumbnail"));
+      th.append($("<th/>").addClass("border").addClass("px-2").addClass("text-blue-500").addClass("py-1").text("Title"));
+      th.append($("<th/>").addClass("border").addClass("px-2").addClass("text-blue-500").addClass("py-1").text("Brand"));
+      th.append($("<th/>").addClass("border").addClass("px-2").addClass("text-blue-500").addClass("py-1").text("Category"));
+      th.append($("<th/>").addClass("border").addClass("px-2").addClass("text-blue-500").addClass("py-1").text("Description"));
+      th.append($("<th/>").addClass("border").addClass("px-2").addClass("text-blue-500").addClass("py-1").text("Price"));
+      th.append($("<th/>").addClass("border").addClass("px-2").addClass("text-blue-500").addClass("py-1").text("Sale %"));
+      th.append($("<th/>").addClass("border").addClass("px-2").addClass("text-blue-500").addClass("py-1").text("Rating"));
+      th.append($("<th/>").addClass("border").addClass("px-2").addClass("text-blue-500").addClass("py-1").text("Stock"));
+      return th;
+    }
+
+    const createRow = (row) => {
+      // TBD
+      let tr = $("<tr/>");
+      tr.append($("<td/>").addClass("border").addClass("w-8").addClass("h-8").addClass("px-2").addClass("py-2").text(row.id));
+      let thumbnailImg = $("<img/>").attr("src", row.thumbnail).addClass("w-28").addClass("h-14").css("object-fit", "cover");
+      let thumbnailTd = $("<td/>").addClass("border").addClass("h-8").addClass("px-3").addClass("py-2").append(thumbnailImg);
+      tr.append(thumbnailTd);      
+      tr.append($("<td/>").addClass("border").addClass("w-50").addClass("h-16").addClass("px-2").addClass("py-2").text(row.title));
+      tr.append($("<td/>").addClass("border").addClass("w-50").addClass("h-16").addClass("px-2").addClass("py-2").text(row.brand));
+      tr.append($("<td/>").addClass("border").addClass("w-32").addClass("h-16").addClass("px-2").addClass("py-2").text(row.category));
+      tr.append($("<td/>").addClass("border").addClass("w-100").addClass("h-16").addClass("px-2").addClass("py-1").text(row.description));
+      tr.append($("<td/>").addClass("border").addClass("px-2").addClass("py-2").text(row.price));
+      tr.append($("<td/>").addClass("border").addClass("w-8").addClass("px-2").addClass("py-2").text(row.discountPercentage));
+      tr.append($("<td/>").addClass("border").addClass("w-8").addClass("px-2").addClass("py-2").text(row.rating));
+      tr.append($("<td/>").addClass("border").addClass("w-8").addClass("px-2").addClass("py-2").text(row.stock));
+      return tr;
+    }
+
+    const createTable = () => {
+      // JQuery
+      const pageIndex = $("#pageIndex")
+      pageIndex.text(`${currentPage}/${numberOfPages}`)
+      const container = $("#myTable")
+      container.empty();
+      // create table
+      const tb = $("<table/>")
+      tb.addClass("table table-bordered table-hovered mx-4 my-4")
+
+      // create and append (to table) header row
+      let trh = createTableHeader()
+      tb.append(trh)
+      const page = fetchedData.products.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+      page.forEach((dataRow) => {
+        console.log(dataRow);
+        let tr = createRow(dataRow)
+        $(tb).append(tr)
+      })
+
+      $("#myTable").append(tb)
+    }
+    
+  </script>
+</head>
+
+<body>
+  <div id="myTable"></div>
+  <div class="flex items-center justify-center">
+    <button id="previousPageBtn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-l">
+      &larr; Previous Page
+    </button>
+    <div id="pageIndex" class="bg-gray-200 text-gray-700 font-bold py-2 px-4 w-32 text-center">
+      Page Index
+    </div>
+    <button id="nextPageBtn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r">
+      Next Page &rarr;
+    </button>
+  </div>
+</body>
+
+</html>
