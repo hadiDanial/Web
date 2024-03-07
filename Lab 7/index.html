@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Exercise 8 Image Gallery Angular</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="angularScript.js"></script>
+    <link rel="stylesheet" href="inc/loading.css">
+
+    <style>
+      .td-img {
+        padding: 0px;
+        width: 106px;
+        height: 60px;
+      }
+      body {
+        overflow-y: scroll;
+      }
+    </style>
+    <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+
+  <body ng-app="ImageGallery">
+    <div class="mr-16 ml-16">
+      <h1 class="text-lg font-bold text-center mt-6">Angular Image Gallery</h1>
+      <div ng-controller="GalleryController as galleryController">
+          <div class="border grid grid-cols-10 gap-4 justify-between p-8 content-center mx-auto">
+            <div ng-repeat="image in galleryController.images" class="col-1 w-16 content-center  mx-auto">
+              <img ng-src="{{image.url}}" ng-click="galleryController.setCurrentImage(image.index)" class="bg-image rounded w-full h-full mx-auto object-cover" />
+            </div>
+          </div>
+          <div class="col-1 w-1/2 mx-auto text-center" ng-if="galleryController.selectedImage">
+            <img ng-src="{{galleryController.selectedImage}}" class="bg-image rounded w-full p-16" />
+          </div>
+      </div>
+      </div>
+    </div>
+  </body>
+</html>
